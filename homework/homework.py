@@ -14,6 +14,7 @@ from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import r2_score, mean_squared_error, median_absolute_error
+from sklearn.feature_selection import VarianceThreshold
 
 def read_zip_data(type_of_data):
     zip_path = f"files/input/{type_of_data}_data.csv.zip"
@@ -39,8 +40,9 @@ def build_pipeline(categorical_features, numerical_features):
     remainder='passthrough'
     )
 
-    pipeline = Pipeline([
+    pipeline = Pipeline(steps = [
         ('preprocessor', transformer),
+        ('variance_threshold', VarianceThreshold(threshold=0.0001)), 
         ('feature_selection', SelectKBest(score_func=f_classif, k=10)),
         ('classifier', LinearRegression())
     ])
@@ -49,7 +51,7 @@ def build_pipeline(categorical_features, numerical_features):
 
 def optimize_pipeline(pipeline, X_train, y_train):
     param_grid = {
-    'feature_selection__k':range(1,25),
+    'feature_selection__k':range(1,15),
     'classifier__fit_intercept':[True,False],
     'classifier__positive':[True,False]
     }
@@ -60,7 +62,7 @@ def optimize_pipeline(pipeline, X_train, y_train):
         cv = 10,
         scoring = "neg_median_absolute_error",
         n_jobs=-1, 
-        refit=True,
+        
         verbose = 2
     )
 
